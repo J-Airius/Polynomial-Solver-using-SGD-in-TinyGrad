@@ -1,0 +1,75 @@
+# Requirement for CoE197-M-ML
+# Polynomial Solver using SGD in TinyGrad
+# Author: Jasper Airius O. Cuya [2019-02407]
+
+import csv
+import numpy as np
+from tinygrad import Tensor
+
+# Load the training data from the CSV file
+x_train = []
+y_train = []
+with open('data_train.csv', 'r') as csvfile:
+    reader = csv.reader(csvfile, delimiter=',')
+    next(reader)  # skip the header
+    for row in reader:
+        x_train.append(float(row[0]))
+        y_train.append(float(row[1]))
+
+# Convert the training data to Numpy arrays
+x_train = np.array(x_train)
+y_train = np.array(y_train)
+
+# Define the model
+def model(x, degree):
+    y = 0
+    for i in range(degree+1):
+        y += Tensor(np.random.randn(1), requires_grad=True) * x ** i
+    return y
+
+# Define the loss function
+def loss(pred, target):
+    return ((pred - target) ** 2).mean()
+
+# Initialize the optimizer
+optimizer = SGD(params=model.parameters(), lr=0.01)
+
+# Train the model
+for epoch in range(100):
+    # Reset the gradients
+    optimizer.zero_grad()
+    
+    # Make a prediction
+    pred = model(x_train, degree=10)
+    
+    # Calculate the loss
+    l = loss(pred, y_train)
+    
+    # Compute the gradients
+    l.backward()
+    
+    # Update the parameters
+    optimizer.step()
+    
+# Print the final coefficients
+for param in model.parameters():
+    print(param.data)
+
+# Load the test data from the CSV file
+x_test = []
+y_test = []
+with open('data_test.csv', 'r') as csvfile:
+    reader = csv.reader(csvfile, delimiter=',')
+    next(reader)  # skip the header
+    for row in reader:
+        x_test.append(float(row[0]))
+        y_test.append(float(row[1]))
+
+# Convert the test data to Numpy arrays
+x_test = np.array(x_test)
+y_test = np.array(y_test)
+
+# Calculate the test error
+pred = model(x_test, degree=10)
+test_error = loss(pred, y_test).data
+print(f'Test error: {test_error:.4f}')
