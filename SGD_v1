@@ -1,0 +1,50 @@
+# Requirement for CoE197-M-ML
+# Polynomial Solver using SGD in TinyGrad
+# Author: Jasper Airius O. Cuya [2019-02407]
+
+import numpy as np
+import csv
+import tinygrad as tg
+from tinygrad import tensor
+
+# Uses csv to read csv file
+def read_csv(filename):
+  x = []
+  y = []
+  with open(filename, 'r') as f:
+    reader = csv.reader(f)
+    next(reader)  # skip header
+    for row in reader:
+      x.append(float(row[0]))
+      y.append(float(row[1]))
+  return np.array(x), np.array(y)
+
+# Using polyfit
+def polynomial_solver(x, y, degree):
+    coefficients = np.polyfit(x, y, degree)
+    return coefficients
+
+# Using Tensor from TinyGrad
+x = tensor([x_values], requires_grad=True)
+y = tensor([y_values])
+
+# Defining Polynomial
+def polynomial(coefficients, x):
+    y = 0
+    for i, coefficient in enumerate(coefficients):
+        y += coefficient * x ** i
+    return y
+
+# Using TinyGrad SGD Optimizer
+optimizer = tg.SGD([x], lr=0.1)
+for i in range(1000):
+    y_pred = polynomial(coefficients, x)
+    loss = (y_pred - y).square().mean()
+    if i % 100 == 0:
+        print(loss)
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+
+# Printing Coefficients
+print(coefficients)
