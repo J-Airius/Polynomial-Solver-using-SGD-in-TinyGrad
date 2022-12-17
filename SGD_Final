@@ -1,0 +1,102 @@
+# Requirement for CoE197-M-ML
+# Polynomial Solver using SGD in TinyGrad
+# Author: Jasper Airius O. Cuya [2019-02407]
+
+# Libraries
+import numpy as np
+import sys
+import tinygrad as tg
+
+# Print a prompt
+# Data_train Path: C:\Users\Jasper\OneDrive - University of the Philippines\Desktop\VS Code\data_train.csv
+print('Enter the input file path:')
+
+# Read the input file path from standard input
+filename_train = sys.stdin.readline().strip()
+
+# Read the .csv file using genfromtxt
+data_train = np.genfromtxt(filename_train, delimiter=',', skip_header=1)
+
+# Split the data into a training set and a validation set
+x_train, x_val, y_train, y_val = np.split(data_train, [int(0.5*len(data_train))])
+
+# Scale or normalize the input variables to help SGD converge faster
+x_train = (x_train - np.mean(x_train, axis=0)) / np.std(x_train, axis=0)
+x_val = (x_val - np.mean(x_train, axis=0)) / np.std(x_train, axis=0)
+
+# Define a range of possible degrees for the polynomial
+degrees = range(1, 11)
+
+# Initialize a dictionary to store the mean squared error on the validation set for each degree
+val_errors = {}
+
+# Iterate over each degree
+for degree in degrees:
+    # Initialize the polynomial coefficients to random values
+    coefficients = np.random.randn(degree + 1)
+
+    # Define a function that takes in a set of polynomial coefficients and returns the predicted output for a given input
+    def predict(coefficients, x):
+        return np.polyval(coefficients, x)
+
+    # Define a loss function that computes the mean squared error between the predicted and true outputs
+    def mse(coefficients, x, y):
+        y_pred = predict(coefficients, x)
+        return np.mean((y_pred - y)**2)
+
+    # Use SGD to optimize the polynomial coefficients by minimizing the mean squared error on the training set
+    opt = tg.SGD(learning_rate=0.001)
+    for _ in range(1000):
+        opt.zero_grad()
+        loss = mse(coefficients, x_train, y_train)
+        loss.backward()
+        opt.step()
+
+    # Use the learned polynomial coefficients to make predictions on the validation set
+    y_pred = predict(coefficients, x_val)
+
+    # Compute the mean squared error between the predicted and true outputs on the validation set
+    val_error = np.mean((y_pred - y_val)**2)
+
+    # Store the mean squared error for this degree
+    val_errors[degree] = val_error
+
+# Select the degree that gives the lowest mean squared error on the validation set
+best_degree = min(val_errors, key=val_errors.get)
+
+# Retrain the model using the entire training set and the selected degree
+coefficients = np.random.randn(best_degree + 1)
+opt = tg.SGD(learning_rate=0.01)
+for _ in range(100):
+    opt.zero_grad()
+    loss = mse(coefficients, x_train, y_train)
+    loss.backward()
+    opt.step()
+
+# Print another prompt
+# Data_test Path: C:\Users\Jasper\OneDrive - University of the Philippines\Desktop\VS Code\data_test.csv
+print('Enter the input file path:')
+
+# Read the input file path from standard input
+filename_test = sys.stdin.readline().strip()
+
+# Read the .csv file using genfromtxt
+data_test = np.genfromtxt(filename_test, delimiter=',', skip_header=1)
+
+# Split the data into input (X) and output (y) variables
+x_test = data_test[:,0]
+y_test = data_test[:,1]
+
+# Scale or normalize the input variables using the same parameters as the training data
+x_test = (x_test - np.mean(x_train, axis=0)) / np.std(x_train, axis=0)
+
+# Use the learned polynomial coefficients to make predictions on the test data
+y_pred = predict(coefficients, x_test)
+
+# Evaluate the performance of the learned polynomial by computing the mean squared error between the predicted and true outputs on the test data
+test_error = np.mean((y_pred - y_test)**2)
+
+# Print the results
+print(f'Best degree: {best_degree}')
+print(f'Optimized coefficients: {coefficients:.4f}')
+print(f'Test error: {test_error:.4f}')
