@@ -1,0 +1,74 @@
+# Requirement for CoE197-M-ML
+# Polynomial Solver using SGD in TinyGrad
+# Author: Jasper Airius O. Cuya [2019-02407]
+
+# Libraries
+import numpy as np
+import sys
+from tinygrad import SGD
+
+# Print a prompt
+# Data_train Path: C:\Users\Jasper\OneDrive - University of the Philippines\Desktop\VS Code\data_train.csv
+print('Enter the input file path:')
+
+# Read the input file path from standard input
+filename_train = sys.stdin.readline().strip()
+
+# Read the .csv file using genfromtxt
+data_train = np.genfromtxt(filename_train, delimiter=',', skip_header=1)
+
+# Divide data to x and y numpy arrays
+x_estimate = data_train[:,0]
+y_estimate = data_train[:,1]
+
+# Initializing coefficients at degree 9
+coefficients = np.ones(10)
+
+# Define polynomial function
+def function(coefficients,x):
+    y = 0
+    for i, c in enumerate(coefficients):
+        y += c * x**i
+    return y
+
+# Define derivative of polynomial
+def function_prime(coefficients,x):
+    dy = 0
+    for i, c in enumerate (coefficients):
+        dy += i * c * x**(i-1)
+    return dy
+
+# Define error function
+def error(original, updated):
+    return ((original - updated) ** 2).mean()
+
+# Using SGD
+Optimizer = SGD(lr=0.001)
+for i in range(1000):
+    for x,y in zip(x_estimate,y_estimate):
+        y_obtained = function(coefficients,x)
+        loss = error(y,y_obtained)
+        loss.backward()
+        Optimizer.step(coefficients)
+
+# Print another prompt
+# Data_test Path: C:\Users\Jasper\OneDrive - University of the Philippines\Desktop\VS Code\data_test.csv
+print('Enter the input file path:')
+
+# Read the input file path from standard input
+filename_test = sys.stdin.readline().strip()
+
+# Read the .csv file using genfromtxt
+data_test = np.genfromtxt(filename_test, delimiter=',', skip_header=1)
+
+# Divide data to x and y numpy arrays
+x_correct = data_test[:,0]
+y_correct = data_test[:,1]
+
+# Solving for error using optimized coefficients
+y_optimized = function(coefficients,x_correct)
+loss = error(y_correct,y_optimized)
+
+# Print
+print(f'Optimized coefficients: {coefficients:.4f}')
+print(f'Test error: {loss:.4f}')
