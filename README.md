@@ -12,3 +12,8 @@ Update:
 Tried to create a code without the usage of Tensor and SGD, because it does not work on my computer. Will only serve as a final choice if was not able to submit a code that uses SGD
 Learning Rate and Epoch set to 0.001 and 100
 Degree was set to 2
+
+Update:
+Made a code the way I think it is supposed to work. (Included SGD even though it doesn't work in my device)
+Epoch increased to 1000
+Degree increased to 9, reasoning being that higher degrees can have coefficients of zero, so it's okay to be high.
