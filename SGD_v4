@@ -31,13 +31,6 @@ def function(coefficients,x):
         y += c * x**i
     return y
 
-# Define derivative of polynomial
-def function_prime(coefficients,x):
-    dy = 0
-    for i, c in enumerate (coefficients):
-        dy += i * c * x**(i-1)
-    return dy
-
 # Define error function
 def error(original, updated):
     return ((original - updated) ** 2).mean()
